@@ -1,6 +1,4 @@
 const mongoose = require("mongoose")
-mongoose.connect("mongodb://localhost:27017/paytm")
-
 const Schema = mongoose.Schema
 const ObjectId = mongoose.Types.ObjectId;
 
@@ -15,9 +13,8 @@ const userSchema = new Schema({
         },
         password: {
             type: String,
-            maxLength: 20,
+            maxLength: 60,
             minLength: 6,
-            trim: true,
             required: true
         },
         firstname: {
@@ -39,5 +36,5 @@ const userSchema = new Schema({
 const User = mongoose.model("user", userSchema);
 
 module.exports = {
-    userModel
+    User
 }

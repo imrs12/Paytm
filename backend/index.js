@@ -1,9 +1,18 @@
 const express = require("express");
-
+const mongoose = require("mongoose")
 const app = express();
+const mainRouter = require("./routes/index")
 
-app.use(express.json());
+app.use("/api/v1/", mainRouter)
 
-app.post("/sign", )
+async function main(){
+    await mongoose.connect("mongodb://localhost:27017/paytm");
+    console.log("connected to database")
+}
+
+main()
+
+app.listen(3000)
+
 
 
