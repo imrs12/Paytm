@@ -5,7 +5,7 @@ const userRouter = express.Router();
 const { User } = require("../db");
 const { Salt, JWT_SECRET } = require("./config");
 const zod = require("zod");
-const { SignupBody } = require("./zod");
+const { SignupBody, SigninBody } = require("./zod");
 const jwt = require("jsonwebtoken")
 
 userRouter.use(express.json());
@@ -55,6 +55,9 @@ userRouter.post("/signup", async (req, res) => {
         } 
     } catch (error) {
         console.log(error)
+        if(error.code == 411){
+            
+        }
         res.status(500).json({
             message: "Something went wrong! Try Again"
         })
@@ -63,7 +66,34 @@ userRouter.post("/signup", async (req, res) => {
 })
 
 userRouter.post("/signin", async (req, res) => {
-    
+     const { success } = SigninBody.safeParse(req.body)
+    if (!success) {
+         res.status(411).json({
+            message: "Email already taken / Incorrect inputs"
+        })
+        return;
+    }
+
+    const user = await User.findOne({
+        username: req.body.username,
+    });
+
+    const MatchedPassword = bcrypt.compare(req.body.password, user.password)
+
+    if (MatchedPassword) {
+        const token = jwt.sign({
+            userId: user._id
+        }, JWT_SECRET);
+  
+        res.json({ token: token
+        })
+        return;
+    }
+
+    res.status(411).json({
+        message: "Error while logging in"
+    })
 })
+
 
 module.exports = userRouter;
