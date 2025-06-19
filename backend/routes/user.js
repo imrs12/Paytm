@@ -4,9 +4,9 @@ const cors = require("cors");
 const userRouter = express.Router();
 const { User } = require("../db");
 const { Salt, JWT_SECRET } = require("./config");
-const zod = require("zod");
-const { SignupBody, SigninBody } = require("./zod");
-const jwt = require("jsonwebtoken")
+const { SignupBody, SigninBody, UpdateBody } = require("./zod");
+const jwt = require("jsonwebtoken");
+const { authMiddleware } = require("./middleware");
 
 userRouter.use(express.json());
 userRouter.use(cors());
@@ -93,6 +93,53 @@ userRouter.post("/signin", async (req, res) => {
     res.status(411).json({
         message: "Error while logging in"
     })
+})
+
+userRouter.put("/update", authMiddleware,async (req, res)=>{
+    const userId = req.userId
+
+    const { success } = UpdateBody.safeParse(req.body)
+
+    if(!success){
+        res.status(411).json({
+            message: "Error while Updating"
+        })
+    }
+
+    const updatedPayload = await User.updateOne({
+        _id: userId
+    },req.body);
+
+    res.json({
+        message: "Updated successfully"
+    })
+})
+
+userRouter.get("/bulk", authMiddleware, async(req, res) =>{
+    const filter = req.query.filter || "";
+    const Users = await User.find({
+        $or: [
+            {
+                firstname : {
+                    "$regex" : filter
+                }
+            },{
+                lastname: {
+                    "$regex": filter
+                }
+            }
+        ]
+    })
+
+    res.json({
+        users: Users.map( user => ({
+            username: user.username,
+            firstName: user.firstname,
+            lastName: user.lastname,
+            _id: user._id
+        }))
+    })
+    
 })
 
 
